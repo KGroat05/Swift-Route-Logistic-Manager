@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swift Route Logistics Manager | DBMS Mini Project</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <nav id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-white">
+      <a href="#" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none px-2">
+        <i class="bi bi-truck text-primary fs-3 me-2"></i>
+        <div>
+          <span class="fs-5 fw-bold tracking-tight">Swift Route</span>
+          <div class="text-muted" style="font-size: 0.75rem;">Logistics Manager</div>
+        </div>
+      </a>
+      <hr class="border-secondary my-3">
+      <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-view="dashboard">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-view="shipments">
+            <i class="bi bi-box-seam"></i> Shipments
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-view="tracking">
+            <i class="bi bi-geo-alt"></i> Live Tracking
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-view="customers">
+            <i class="bi bi-people"></i> Customers
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-view="fleet">
+            <i class="bi bi-car-front"></i> Fleet & Drivers
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-view="routes">
+            <i class="bi bi-map"></i> Routes & Distances
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-view="billing">
+            <i class="bi bi-receipt"></i> Invoices & Billing
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-view="inventory">
+            <i class="bi bi-boxes"></i> Warehouse Inventory
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-view="analytics">
+            <i class="bi bi-graph-up-arrow"></i> Relational Views
+          </a>
+        </li>
+        <li class="mt-2 border-top border-secondary pt-2">
+          <a href="#" class="nav-link text-warning" data-view="sqllab">
+            <i class="bi bi-terminal"></i> Interactive SQL Lab
+          </a>
+        </li>
+      </ul>
+      <hr class="border-secondary">
+      <div class="px-2">
+        <div class="small text-muted mb-1">Academic DBMS Mini Project</div>
+        <div class="small text-light fw-bold">21CSC205P | SRMIST</div>
+        <div class="small text-muted">MySQL 8.4 LTS + FastAPI</div>
+      </div>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div id="main-content" class="d-flex flex-column">
+      <!-- Top Navigation Bar -->
+      <header class="top-navbar d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <button class="btn btn-outline-secondary btn-sm d-lg-none me-2" type="button" onclick="document.getElementById('sidebar').classList.toggle('show')">
+            <i class="bi bi-list"></i>
+          </button>
+          <span class="fw-bold text-dark fs-5">Logistics Operations Hub</span>
+        </div>
+
+        <!-- Role Quick-Switcher & Active Profile -->
+        <div class="d-flex align-items-center gap-3">
+          <div class="btn-group btn-group-sm" role="group" aria-label="Role Switcher">
+            <button type="button" class="btn btn-outline-danger switch-role-btn" data-role="admin">Admin</button>
+            <button type="button" class="btn btn-outline-primary switch-role-btn" data-role="dispatcher">Dispatcher</button>
+            <button type="button" class="btn btn-outline-secondary switch-role-btn" data-role="viewer">Viewer</button>
+          </div>
+
+          <div class="vr"></div>
+
+          <div class="d-flex align-items-center">
+            <div class="text-end me-2">
+              <div id="current-user-badge" class="fw-bold small text-dark">User</div>
+              <span id="current-user-role" class="badge bg-primary">ROLE</span>
+            </div>
+            <a href="/docs" target="_blank" class="btn btn-sm btn-outline-dark" title="Open Swagger UI API Docs">
+              <i class="bi bi-braces me-1"></i>Swagger
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <main class="p-4 flex-grow-1">
+
+        <!-- 1. DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-section">
+          <!-- KPI Cards Row -->
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-xl-2">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <div class="text-muted small">In-Transit</div>
+                    <h3 id="kpi-active-shipments" class="fw-bold mb-0 text-primary">-</h3>
+                  </div>
+                  <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-truck"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-2">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <div class="text-muted small">Delivered</div>
+                    <h3 id="kpi-delivered-shipments" class="fw-bold mb-0 text-success">-</h3>
+                  </div>
+                  <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-check2-circle"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <div class="text-muted small">Gross Revenue</div>
+                    <h3 id="kpi-total-revenue" class="fw-bold mb-0 text-dark">-</h3>
+                  </div>
+                  <div class="stat-icon bg-info-subtle text-info"><i class="bi bi-currency-rupee"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-2">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <div class="text-muted small">Available Fleet</div>
+                    <h3 id="kpi-available-vehicles" class="fw-bold mb-0 text-primary">-</h3>
+                  </div>
+                  <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-car-front"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-2">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <div class="text-muted small">Active Drivers</div>
+                    <h3 id="kpi-active-drivers" class="fw-bold mb-0 text-success">-</h3>
+                  </div>
+                  <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-person-check"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xl-1">
+              <div class="stat-card">
+                <div>
+                  <div class="text-muted small">Low Stock</div>
+                  <h3 id="kpi-low-stock" class="fw-bold mb-0 text-danger">-</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle Row: Chart & Actions -->
+          <div class="row g-3 mb-4">
+            <div class="col-lg-5">
+              <div class="content-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span><i class="bi bi-pie-chart me-2"></i>Shipment Status Breakdown</span>
+                  <small class="text-muted">Live DB Aggregate</small>
+                </div>
+                <div class="card-body" style="height: 280px; position: relative;">
+                  <canvas id="shipmentStatusChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-7">
+              <div class="content-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span><i class="bi bi-lightning-charge me-2"></i>Operational Control Center</span>
+                  <span class="badge bg-dark">DBMS Actions</span>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-between">
+                  <p class="text-muted small">
+                    Execute transactional logistics workflows with ACID guarantees, capacity validation, and reactive triggers.
+                  </p>
+                  <div class="row g-2">
+                    <div class="col-md-4">
+                      <button class="btn btn-primary w-100 py-2 require-dispatcher" onclick="openBookingModal()">
+                        <i class="bi bi-plus-circle me-1"></i> Book Shipment
+                      </button>
+                    </div>
+                    <div class="col-md-4">
+                      <button class="btn btn-outline-dark w-100 py-2 require-dispatcher" onclick="executeInventoryRestockAudit()">
+                        <i class="bi bi-cpu me-1"></i> Restock Audit (Cursor)
+                      </button>
+                    </div>
+                    <div class="col-md-4">
+                      <button class="btn btn-outline-warning w-100 py-2" onclick="switchView('sqllab')">
+                        <i class="bi bi-terminal me-1"></i> Open SQL Lab
+                      </button>
+                    </div>
+                  </div>
+                  <div class="alert alert-light border mt-3 mb-0 small">
+                    <strong>SRM DBMS Syllabus Alignment:</strong> Concurrency Control (2PL), Stored Procedures with Cursors, Automatic Status Triggers, and BCNF/5NF normalization.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Shipments Table -->
+          <div class="content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-clock-history me-2"></i>Recent Shipments</span>
+              <button class="btn btn-sm btn-link text-decoration-none" onclick="switchView('shipments')">View All</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Tracking #</th>
+                    <th>Customer</th>
+                    <th>Route</th>
+                    <th>Weight</th>
+                    <th>Status</th>
+                    <th>Timeline</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-shipments-tbody">
+                  <tr><td colspan="6" class="text-center py-3 text-muted">Loading dispatches...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. SHIPMENTS VIEW -->
+        <div id="view-shipments" class="view-section d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2"></i>Shipments Manifest</h4>
+            <button class="btn btn-primary require-dispatcher" onclick="openBookingModal()">
+              <i class="bi bi-plus-lg me-1"></i> New Shipment Booking
+            </button>
+          </div>
+
+          <div class="card content-card mb-3 p-3">
+            <div class="row g-2">
+              <div class="col-md-4">
+                <input type="text" id="search-shipments" class="form-control" placeholder="Search tracking #, customer, address...">
+              </div>
+              <div class="col-md-3">
+                <select id="filter-shipment-status" class="form-select">
+                  <option value="">All Statuses</option>
+                  <option value="PENDING">PENDING</option>
+                  <option value="BOOKED">BOOKED</option>
+                  <option value="IN_TRANSIT">IN_TRANSIT</option>
+                  <option value="OUT_FOR_DELIVERY">OUT_FOR_DELIVERY</option>
+                  <option value="DELIVERED">DELIVERED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Tracking #</th>
+                    <th>Customer</th>
+                    <th>Route</th>
+                    <th>Cargo</th>
+                    <th>Weight</th>
+                    <th>Vehicle</th>
+                    <th>Driver</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="shipments-table-body">
+                  <tr><td colspan="9" class="text-center py-4 text-muted">Loading shipments...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. LIVE TRACKING VIEW -->
+        <div id="view-tracking" class="view-section d-none">
+          <div class="row justify-content-center">
+            <div class="col-lg-8">
+              <div class="text-center mb-4">
+                <h3 class="fw-bold"><i class="bi bi-radar text-primary me-2"></i>Real-Time Cargo Tracking</h3>
+                <p class="text-muted">Enter a consignment tracking number to view the end-to-end milestone audit timeline.</p>
+                <form onsubmit="searchTrackingNumber(event)" class="d-flex justify-content-center gap-2">
+                  <input type="text" id="public-tracking-input" class="form-control form-control-lg w-50" placeholder="e.g. SR-2026-1001" value="SR-2026-1001" required>
+                  <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-search me-1"></i> Track</button>
+                </form>
+              </div>
+              <div id="tracking-result-container"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. CUSTOMERS VIEW -->
+        <div id="view-customers" class="view-section d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>Customer Directory</h4>
+            <button class="btn btn-primary require-dispatcher" onclick="openCreateCustomerModal()">
+              <i class="bi bi-person-plus me-1"></i> Register Customer
+            </button>
+          </div>
+          <div class="content-card">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Company Name</th>
+                    <th>Contact Person</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="customers-table-body">
+                  <tr><td colspan="6" class="text-center py-4 text-muted">Loading customers...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. FLEET & DRIVERS VIEW -->
+        <div id="view-fleet" class="view-section d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-car-front me-2"></i>Fleet & Driver Management</h4>
+            <button class="btn btn-success require-dispatcher" onclick="runDriverPayoutsCalculation()">
+              <i class="bi bi-calculator me-1"></i> Calculate Driver Payouts (Cursor)
+            </button>
+          </div>
+
+          <!-- Vehicles Table -->
+          <div class="content-card mb-4">
+            <div class="card-header">Fleet Vehicles</div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>License Plate</th>
+                    <th>Model</th>
+                    <th>Type</th>
+                    <th>Capacity (kg)</th>
+                    <th>Status</th>
+                    <th>Last Maintenance</th>
+                  </tr>
+                </thead>
+                <tbody id="vehicles-table-body">
+                  <tr><td colspan="6" class="text-center py-3 text-muted">Loading vehicles...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Drivers Table -->
+          <div class="content-card">
+            <div class="card-header">Commercial Drivers Roster</div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Driver Name</th>
+                    <th>License Number</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Experience</th>
+                    <th>Hired Date</th>
+                  </tr>
+                </thead>
+                <tbody id="drivers-table-body">
+                  <tr><td colspan="6" class="text-center py-3 text-muted">Loading drivers...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. ROUTES VIEW -->
+        <div id="view-routes" class="view-section d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-map me-2"></i>Predefined Transit Routes</h4>
+          </div>
+          <div class="content-card">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Route Name</th>
+                    <th>Start Terminal</th>
+                    <th>Destination Terminal</th>
+                    <th>Distance</th>
+                    <th>Transit Time</th>
+                    <th>Toll Cost</th>
+                  </tr>
+                </thead>
+                <tbody id="routes-table-body">
+                  <tr><td colspan="6" class="text-center py-4 text-muted">Loading routes...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. BILLING VIEW -->
+        <div id="view-billing" class="view-section d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Billing & Invoices</h4>
+          </div>
+
+          <!-- Financial Snapshot Banner -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="text-muted small">Gross Billed</div>
+                <h4 id="fin-gross-billed" class="fw-bold mb-0 text-dark">-</h4>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="text-muted small">Collected Revenue</div>
+                <h4 id="fin-collected" class="fw-bold mb-0 text-success">-</h4>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="text-muted small">Receivables</div>
+                <h4 id="fin-receivables" class="fw-bold mb-0 text-danger">-</h4>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="text-muted small">Collection Rate</div>
+                <h4 id="fin-efficiency" class="fw-bold mb-0 text-primary">-</h4>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Invoice #</th>
+                    <th>Base Amount</th>
+                    <th>GST Tax (18%)</th>
+                    <th>Total Amount</th>
+                    <th>Billing Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Payment Method</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="billing-table-body">
+                  <tr><td colspan="9" class="text-center py-4 text-muted">Loading invoices...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. INVENTORY VIEW -->
+        <div id="view-inventory" class="view-section d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-boxes me-2"></i>Warehouse Inventory & Stock</h4>
+            <button class="btn btn-outline-danger require-dispatcher" onclick="executeInventoryRestockAudit()">
+              <i class="bi bi-cpu me-1"></i> Restock Audit (Cursor)
+            </button>
+          </div>
+          <div class="content-card">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>SKU Code</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Stock Quantity</th>
+                    <th>Reorder Level</th>
+                    <th>Unit Cost</th>
+                    <th>Warehouse Bay</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-table-body">
+                  <tr><td colspan="8" class="text-center py-4 text-muted">Loading inventory...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. RELATIONAL VIEWS (ANALYTICS) -->
+        <div id="view-analytics" class="view-section d-none">
+          <div class="mb-4">
+            <h4 class="fw-bold"><i class="bi bi-table me-2"></i>MySQL Relational Views Analysis</h4>
+            <p class="text-muted small">Direct visualization of MySQL Views implementing multi-table joins, subqueries, and window statistics.</p>
+          </div>
+
+          <!-- View 1: Driver Performance -->
+          <div class="content-card mb-4">
+            <div class="card-header bg-light">
+              <i class="bi bi-eye me-2"></i>View: <code>vw_driver_performance</code>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Driver Name</th>
+                    <th>Assigned Trips</th>
+                    <th>Delivered Trips</th>
+                    <th>Active Trips</th>
+                    <th>Total Distance</th>
+                    <th>Avg Payload</th>
+                    <th>Success Rate</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-driver-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- View 2: Route Analytics -->
+          <div class="content-card">
+            <div class="card-header bg-light">
+              <i class="bi bi-eye me-2"></i>View: <code>vw_route_analytics</code>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Route Name</th>
+                    <th>Distance</th>
+                    <th>Shipments Routed</th>
+                    <th>Total Cargo (kg)</th>
+                    <th>Total Revenue</th>
+                    <th>Revenue/km</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-route-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10. INTERACTIVE SQL LAB & CONCURRENCY SIMULATOR -->
+        <div id="view-sqllab" class="view-section d-none">
+          <div class="mb-3 d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="fw-bold mb-0"><i class="bi bi-terminal text-warning me-2"></i>Interactive SQL Lab & ACID Simulator</h4>
+              <p class="text-muted small mb-0">Execute raw SQL queries against MySQL 8.4 LTS or simulate concurrent two-phase locking.</p>
+            </div>
+            <button class="btn btn-danger" onclick="runLiveConcurrencySimulation()">
+              <i class="bi bi-lock-fill me-1"></i> Run 2PL & Savepoint Test
+            </button>
+          </div>
+
+          <!-- Concurrency Simulation Results Container -->
+          <div id="concurrency-simulation-results"></div>
+
+          <!-- Query Selector & Editor Card -->
+          <div class="content-card mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-code-slash me-2"></i>Query Workbench</span>
+              <div class="w-50">
+                <select id="sql-query-select" class="form-select form-select-sm" onchange="selectPreloadedQuery(this.value)">
+                  <option value="">Choose Pre-crafted DBMS Query...</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-body">
+              <p id="sql-query-description" class="text-muted small mb-2">Select a query from the dropdown above or write your own SQL statement below.</p>
+              <textarea id="sql-editor-textarea" class="form-control sql-editor p-3 mb-3" rows="6">SELECT s.tracking_number, c.name AS customer, s.status, s.weight, b.total_amount 
+FROM shipments s 
+INNER JOIN customers c ON s.customer_id = c.id 
+LEFT JOIN billing b ON s.id = b.shipment_id 
+ORDER BY s.created_at DESC;</textarea>
+              <div class="d-flex justify-content-between align-items-center">
+                <button class="btn btn-primary" onclick="runSqlQuery()">
+                  <i class="bi bi-play-fill me-1"></i> Execute Query
+                </button>
+                <span id="sql-exec-time" class="badge bg-secondary">⚡ Ready</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Results Grid -->
+          <div class="content-card">
+            <div class="card-header bg-light">
+              <i class="bi bi-grid-3x3 me-2"></i>Query Results
+            </div>
+            <div class="card-body p-0">
+              <div id="sql-result-container" class="p-3">
+                <div class="text-muted small text-center py-4">Click "Execute Query" to inspect real-time relational results from MySQL 8.4 LTS.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal: Book Shipment -->
+  <div class="modal fade" id="modal-book-shipment" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form onsubmit="submitShipmentBooking(event)">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>Book Shipment with Atomic Dispatch</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
+                <select id="book-customer" class="form-select" required></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Predefined Route</label>
+                <select id="book-route" class="form-select" onchange="updateFreightEstimation()"></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Origin Address <span class="text-danger">*</span></label>
+                <textarea id="book-origin" class="form-control" rows="2" placeholder="Depot or warehouse pickup address" required>Chennai Central Logistics Depot</textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Destination Address <span class="text-danger">*</span></label>
+                <textarea id="book-destination" class="form-control" rows="2" placeholder="Consignee delivery address" required>Bengaluru South Goods Terminal</textarea>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Weight (kg) <span class="text-danger">*</span></label>
+                <input type="number" step="0.001" id="book-weight" class="form-control" placeholder="e.g. 500" value="750" required oninput="updateFreightEstimation()">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Volume (m³)</label>
+                <input type="number" step="0.001" id="book-volume" class="form-control" placeholder="e.g. 3.5" value="4.0">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Cargo Description</label>
+                <input type="text" id="book-cargo-type" class="form-control" value="Industrial Spares">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Assign Fleet Vehicle</label>
+                <select id="book-vehicle" class="form-select"></select>
+                <small class="text-muted">Payload capacity is verified in database before commitment.</small>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Assign Driver</label>
+                <select id="book-driver" class="form-select"></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Freight Charge (₹)</label>
+                <input type="number" step="0.01" id="book-billing-amount" class="form-control" value="4500.00">
+                <small class="text-muted">Auto-computed via logistics distance/weight formula.</small>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Payment Method</label>
+                <select id="book-payment-method" class="form-select">
+                  <option value="">Awaiting Payment (UNPAID)</option>
+                  <option value="UPI">UPI</option>
+                  <option value="NEFT">NEFT / RTGS</option>
+                  <option value="CREDIT_CARD">Credit Card</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Confirm Booking</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Update Status -->
+  <div class="modal fade" id="modal-update-status" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form onsubmit="submitStatusUpdate(event)">
+          <div class="modal-header bg-dark text-white">
+            <h5 class="modal-title"><i class="bi bi-arrow-repeat me-2"></i>Update Shipment Status</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="status-shipment-id">
+            <div class="mb-3">
+              <label class="form-label">Current Status:</label>
+              <span id="status-current-display" class="badge bg-secondary ms-2"></span>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">New Status <span class="text-danger">*</span></label>
+              <select id="status-new-select" class="form-select" required>
+                <option value="BOOKED">BOOKED</option>
+                <option value="IN_TRANSIT">IN_TRANSIT</option>
+                <option value="OUT_FOR_DELIVERY">OUT_FOR_DELIVERY</option>
+                <option value="DELIVERED">DELIVERED (Releases Fleet)</option>
+                <option value="CANCELLED">CANCELLED (Releases Fleet)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Current Checkpoint Location <span class="text-danger">*</span></label>
+              <input type="text" id="status-location" class="form-control" placeholder="e.g. Sriperumbudur Toll Checkpoint" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Checkpoint Notes</label>
+              <textarea id="status-notes" class="form-control" rows="2" placeholder="Driver update or transit remarks"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save Transition</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Shipment Timeline -->
+  <div class="modal fade" id="modal-shipment-timeline" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 id="modal-timeline-title" class="modal-title"><i class="bi bi-clock-history me-2"></i>Tracking Timeline</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div id="modal-timeline-body" class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Customer Form -->
+  <div class="modal fade" id="modal-customer" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form onsubmit="submitCustomerForm(event)">
+          <div class="modal-header bg-primary text-white">
+            <h5 id="cust-modal-title" class="modal-title">Customer</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="cust-id">
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Company / Client Name <span class="text-danger">*</span></label>
+              <input type="text" id="cust-name" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Contact Person</label>
+              <input type="text" id="cust-contact-name" class="form-control">
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                <input type="email" id="cust-email" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Phone <span class="text-danger">*</span></label>
+                <input type="text" id="cust-phone" class="form-control" required>
+              </div>
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
+              <textarea id="cust-address" class="form-control" rows="2" required></textarea>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">City</label>
+                <input type="text" id="cust-city" class="form-control" value="Chennai">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">State</label>
+                <input type="text" id="cust-state" class="form-control" value="Tamil Nadu">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Postal Code</label>
+                <input type="text" id="cust-postal" class="form-control" value="600001">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Customer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Driver Payouts Results -->
+  <div class="modal fade" id="modal-driver-payouts" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title"><i class="bi bi-cash-stack me-2"></i>Driver Payouts (MySQL Cursor Calculation)</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div id="payout-results-body" class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
